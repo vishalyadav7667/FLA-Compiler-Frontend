@@ -1,0 +1,17 @@
+# Temporary Chrome profile
+.chrome-temp-profile/
+
+# Dependencies
+node_modules/
+
+# Environment secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Operating system files
+Thumbs.db
+.DS_Store
+desktop.ini

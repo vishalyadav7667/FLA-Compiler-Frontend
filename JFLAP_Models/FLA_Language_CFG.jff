@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Created with JFLAP 7.1.-->
+<structure>
+	<type>grammar</type>
+	<!--The list of productions.-->
+	<production>
+		<left>S</left>
+		<right>D</right>
+	</production>
+	<production>
+		<left>S</left>
+		<right>A</right>
+	</production>
+	<production>
+		<left>D</left>
+		<right>Tv;</right>
+	</production>
+	<production>
+		<left>D</left>
+		<right>Tv=E;</right>
+	</production>
+	<production>
+		<left>T</left>
+		<right>i</right>
+	</production>
+	<production>
+		<left>T</left>
+		<right>f</right>
+	</production>
+	<production>
+		<left>A</left>
+		<right>v=E;</right>
+	</production>
+	<production>
+		<left>E</left>
+		<right>E+B</right>
+	</production>
+	<production>
+		<left>E</left>
+		<right>B</right>
+	</production>
+	<production>
+		<left>B</left>
+		<right>B*F</right>
+	</production>
+	<production>
+		<left>B</left>
+		<right>F</right>
+	</production>
+	<production>
+		<left>F</left>
+		<right>v</right>
+	</production>
+	<production>
+		<left>F</left>
+		<right>n</right>
+	</production>
+	<production>
+		<left>F</left>
+		<right>(E)</right>
+	</production>
+</structure>

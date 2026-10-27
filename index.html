@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLA-Lang: Compiler Front-End</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    
+    <!-- PERMANENT VERTICAL LEFT SIDEBAR -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-title">FLA-Lang</div>
+        <div class="brand-subtitle">Compiler Front-End</div>
+      </div>
+      
+      <nav class="sidebar-nav" aria-label="Main Navigation">
+        <div class="sidebar-nav-heading">Navigation</div>
+        <button class="nav-item active tab-btn" data-target="workspaceTab">
+          <span>Compiler Workspace</span>
+        </button>
+        <button class="nav-item tab-btn" data-target="automataTab">
+          <span>Automata Visualizer</span>
+        </button>
+        <button class="nav-item tab-btn" data-target="testSuiteTab">
+          <span>Automated Test Suite</span>
+          <span class="nav-pill" id="sidebarTestBadge">14/14</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div>FLA-Lang Front-End v1.0</div>
+      </div>
+    </aside>
+
+    <!-- MAIN APPLICATION WRAPPER -->
+    <div class="app-main-wrapper">
+      
+      <!-- MINIMAL APPLICATION HEADER -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle" id="mobileSidebarToggle" aria-label="Toggle navigation">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5h14M3 10h14M3 15h14"/>
+            </svg>
+          </button>
+          <div>
+            <h1 class="header-title" id="pageHeaderTitle">Compiler Workspace</h1>
+            <p class="header-subtitle" id="pageHeaderSubtitle">Write, analyze, and validate source code.</p>
+          </div>
+        </div>
+        <div class="header-actions" id="headerActions">
+          <!-- Contextual functional actions -->
+        </div>
+      </header>
+
+      <!-- CONTENT PANELS -->
+      <main class="main-content">
+
+        <!-- =============================================================== -->
+        <!-- 1. COMPILER WORKSPACE (Two-Column IDE Layout)                   -->
+        <!-- =============================================================== -->
+        <section id="workspaceTab" class="tab-panel active">
+          <div class="workspace-grid">
+            
+            <!-- LEFT COLUMN: Source Code Editor -->
+            <div class="panel-card">
+              <div class="panel-header">
+                <div class="panel-title">Source Code</div>
+                <div style="display: flex; gap: 0.4rem;">
+                  <button class="btn btn-sm" id="copyBtn" title="Copy source code">Copy</button>
+                  <button class="btn btn-sm btn-danger" id="clearBtn" title="Clear editor">Clear</button>
+                  <button class="btn btn-sm btn-primary" id="runBtn" title="Execute Lexer and Parser">Run Analysis</button>
+                </div>
+              </div>
+
+              <!-- Quick Example Selector Chips -->
+              <div class="examples-bar">
+                <span class="examples-label">Sample Code:</span>
+                <div class="example-chips">
+                  <button class="chip-btn" data-example="default">Default</button>
+                  <button class="chip-btn" data-example="arithmetic">Precedence</button>
+                  <button class="chip-btn" data-example="conditional">If-Else</button>
+                  <button class="chip-btn" data-example="whileLoop">While Loop</button>
+                  <button class="chip-btn invalid-chip" data-example="errSemicolon">Syntax Err: Semicolon</button>
+                  <button class="chip-btn invalid-chip" data-example="errParen">Syntax Err: Paren</button>
+                  <button class="chip-btn invalid-chip" data-example="errLexical">Lexical Err: '@'</button>
+                </div>
+              </div>
+
+              <!-- Editor with Line Numbers -->
+              <div class="editor-wrapper">
+                <div class="line-numbers" id="lineNumbers">1<br>2</div>
+                <textarea id="codeEditor" class="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off">int x = 10;
+x = a + 5;</textarea>
+              </div>
+
+              <!-- Editor Footer Status -->
+              <div class="editor-footer">
+                <span id="cursorStatus">Ln 1, Col 1</span>
+                <span class="status-badge ready" id="analysisStatus">Ready</span>
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Analysis Results -->
+            <div class="panel-card">
+              <div class="panel-header">
+                <div class="panel-title">Analysis Results</div>
+                <div class="output-subtabs">
+                  <button class="subtab-btn active" data-subtarget="tokensSubpanel">
+                    Tokens (<span id="tokenCountBadge">0 tokens</span>)
+                  </button>
+                  <button class="subtab-btn" data-subtarget="treeSubpanel">
+                    Parse Tree / AST
+                  </button>
+                  <button class="subtab-btn" data-subtarget="derivationsSubpanel">
+                    Derivations
+                  </button>
+                </div>
+              </div>
+
+              <!-- Diagnostics Banner -->
+              <div id="diagnosticsBanner" class="diagnostics-banner" style="display: none;"></div>
+
+              <!-- Subpanels Container -->
+              <div class="output-container">
+                
+                <!-- Subpanel 1: Token Stream Table -->
+                <div id="tokensSubpanel" class="subpanel active">
+                  <div class="table-wrapper">
+                    <table class="token-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Lexeme</th>
+                          <th>Token Type</th>
+                          <th>Category / Subtype</th>
+                          <th>Position</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tokenTableBody">
+                        <!-- Populated dynamically via JS -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Subpanel 2: Parse Tree / AST -->
+                <div id="treeSubpanel" class="subpanel">
+                  <div class="tree-container" id="treeContainer">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                </div>
+
+                <!-- Subpanel 3: Grammar Derivations Sequence -->
+                <div id="derivationsSubpanel" class="subpanel">
+                  <div class="derivations-wrapper" id="derivationsContainer">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 2. AUTOMATA VISUALIZER & JFLAP MODELS                           -->
+        <!-- =============================================================== -->
+        <section id="automataTab" class="tab-panel">
+          
+          <!-- Top JFLAP Model Loader -->
+          <div class="jflap-models-card">
+            <div class="jflap-header">
+              <div class="jflap-title">JFLAP Models</div>
+              <div class="jflap-actions">
+                <input id="jffFilesInput" type="file" accept=".jff,.xml,application/xml,text/xml" multiple style="display:none">
+                <button class="btn btn-sm btn-primary" id="jffLoadButton">Choose JFLAP Files</button>
+                <button class="btn btn-sm" id="jffClearButton">Clear Loaded Models</button>
+              </div>
+            </div>
+            <div id="jffStatus" class="jflap-status">
+              Select actual .jff files (e.g. Identifier_DFA.jff, Number_DFA.jff, CFG files) from JFLAP_Models to load their transitions directly into the visualizer.
+            </div>
+            <div id="jffModelsView"></div>
+
+            <!-- Compact Collapsible Supported Grammar Reference -->
+            <details class="grammar-accordion">
+              <summary>View Supported Grammar Production Rules (EBNF)</summary>
+              <div class="grammar-content">[R1]  &lt;Program&gt;      ::= &lt;StmtList&gt;
+[R2]  &lt;StmtList&gt;     ::= &lt;Stmt&gt; &lt;StmtList&gt; | ε
+[R3]  &lt;Stmt&gt;         ::= &lt;DeclStmt&gt; | &lt;AssignStmt&gt; | &lt;IfStmt&gt; | &lt;WhileStmt&gt; | &lt;BlockStmt&gt;
+[R4]  &lt;DeclStmt&gt;     ::= &lt;Type&gt; IDENT [ '=' &lt;Expr&gt; ] ';'
+[R5]  &lt;Type&gt;         ::= 'int' | 'float' | 'bool'
+[R6]  &lt;AssignStmt&gt;   ::= IDENT '=' &lt;Expr&gt; ';'
+[R7]  &lt;IfStmt&gt;       ::= 'if' '(' &lt;CondExpr&gt; ')' &lt;Stmt&gt; [ 'else' &lt;Stmt&gt; ]
+[R8]  &lt;WhileStmt&gt;    ::= 'while' '(' &lt;CondExpr&gt; ')' &lt;Stmt&gt;
+[R9]  &lt;BlockStmt&gt;    ::= '{' &lt;StmtList&gt; '}'
+[R10] &lt;CondExpr&gt;     ::= &lt;Expr&gt; &lt;RelOp&gt; &lt;Expr&gt;
+[R11] &lt;RelOp&gt;        ::= '==' | '&lt;' | '&gt;'
+[R12] &lt;Expr&gt;         ::= &lt;Term&gt; ( ('+' | '-') &lt;Term&gt; )*
+[R13] &lt;Term&gt;         ::= &lt;Factor&gt; ( ('*' | '/') &lt;Factor&gt; )*
+[R14] &lt;Factor&gt;       ::= IDENT | NUMBER | '(' &lt;Expr&gt; ')' | '-' &lt;Factor&gt;</div>
+            </details>
+          </div>
+
+          <!-- Automata Canvas & Machine Specs Layout -->
+          <div class="automata-section">
+            
+            <!-- Automata SVG Diagram & Tape Simulator -->
+            <div class="automata-canvas-card">
+              <div class="canvas-toolbar">
+                <div class="model-selector">
+                  <button class="btn btn-sm active" id="modelIdentifierBtn">Identifier DFA</button>
+                  <button class="btn btn-sm" id="modelNumberBtn">Integer &amp; Decimal DFA</button>
+                </div>
+              </div>
+
+              <!-- SVG Diagram Canvas -->
+              <div class="svg-display-box" id="automataSvgContainer">
+                <!-- Dynamically rendered via JS -->
+              </div>
+
+              <!-- Interactive Simulator -->
+              <div class="sim-controls-card">
+                <div class="sim-heading">Interactive Simulator</div>
+                <div class="sim-input-row">
+                  <input type="text" id="simInput" class="text-input" value="totalScore2" placeholder="Enter string to test..." style="flex: 1; min-width: 180px;">
+                  <button class="btn btn-sm" id="simStepBtn">Step</button>
+                  <button class="btn btn-sm btn-primary" id="simRunBtn">Run All</button>
+                  <button class="btn btn-sm" id="simResetBtn">Reset</button>
+                </div>
+
+                <!-- Tape Display -->
+                <div class="tape-display" id="tapeContainer"></div>
+
+                <!-- Status & State Verdict -->
+                <div id="simVerdict" style="font-size: 0.85rem;"></div>
+
+                <!-- Transition Trace Log -->
+                <div class="trace-log" id="traceLog"></div>
+              </div>
+            </div>
+
+            <!-- Side Card: Machine Details -->
+            <div class="specs-card">
+              <div class="panel-title">Machine Details</div>
+              
+              <div class="spec-list">
+                <div class="spec-item">
+                  <span class="term">States (Q):</span>
+                  <span class="val" id="specQ">{ q0, q1, qtrap }</span>
+                </div>
+                <div class="spec-item">
+                  <span class="term">Alphabet (&Sigma;):</span>
+                  <span class="val" id="specSigma">{ [a-zA-Z], [0-9], other }</span>
+                </div>
+                <div class="spec-item">
+                  <span class="term">Start State (q0):</span>
+                  <span class="val" id="specQ0">q0</span>
+                </div>
+                <div class="spec-item">
+                  <span class="term">Accepting (F):</span>
+                  <span class="val" id="specF">{ q1 }</span>
+                </div>
+                <div class="spec-item" style="flex-direction: column; gap: 0.25rem;">
+                  <span class="term">Description:</span>
+                  <span class="val" id="specDesc" style="font-weight: normal; font-size: 0.8rem; color: var(--text-secondary);"></span>
+                </div>
+              </div>
+
+              <div class="academic-note">
+                Transitions are evaluated deterministically. In JFLAP models, abstract symbols <code>L</code> and <code>D</code> represent letters and digits respectively.
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- 3. AUTOMATED TEST SUITE                                         -->
+        <!-- =============================================================== -->
+        <section id="testSuiteTab" class="tab-panel">
+          
+          <!-- Metric Summary Cards -->
+          <div class="test-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">Total Tests</span>
+              <span class="metric-val" id="testsTotalCount">14</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Passed Tests</span>
+              <span class="metric-val success-text" id="testsPassedCount">14</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Failed Tests</span>
+              <span class="metric-val" id="testsFailedCount">0</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Success Rate</span>
+              <span class="metric-val success-text" id="testsPercent">100%</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Execution Time</span>
+              <span class="metric-val" id="testsTimeMs">2.5 ms</span>
+            </div>
+          </div>
+
+          <!-- Test Results Table Container -->
+          <div class="panel-card" style="margin-top: 0.5rem;">
+            <div class="panel-header">
+              <div class="panel-title">Automated Test Results</div>
+              <button class="btn btn-sm btn-primary" id="runAllTestsBtn">Re-Run All Tests</button>
+            </div>
+            <div id="testsGrid">
+              <!-- Dynamically rendered via app.js -->
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/lexer.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/automata.js"></script>
+  <script src="js/test-suite.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/jff-integration.js"></script>
+</body>
+</html>
