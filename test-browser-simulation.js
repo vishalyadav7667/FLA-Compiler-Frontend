@@ -217,11 +217,13 @@ const FLALexer = require('./js/lexer.js');
 const FLAParser = require('./js/parser.js');
 const FLAAutomata = require('./js/automata.js');
 const FLATestSuite = require('./js/test-suite.js');
+const FLAML = require('./js/ml-predictor.js');
 
 global.FLALexer = FLALexer;
 global.FLAParser = FLAParser;
 global.FLAAutomata = FLAAutomata;
 global.FLATestSuite = FLATestSuite;
+global.FLAML = FLAML;
 
 // Initialize app.js and jff-integration.js
 require('./js/app.js');
@@ -442,10 +444,33 @@ const check6Passed = testsTotalCount === '14' && testsPassedCount === '14' &&
 console.log(`Check 6 Result: ${check6Passed ? 'PASSED' : 'FAILED'}\n`);
 
 // ---------------------------------------------------------------------------
+// VERIFICATION 7: ML Code Prediction Panel & DOM Wiring
+// ---------------------------------------------------------------------------
+console.log('--- CHECK 7: ML Code Prediction Panel & DOM Wiring ---');
+const mlModelBadge = document.getElementById('mlModelBadge');
+const mlLoadCustomBtn = document.getElementById('mlLoadCustomBtn');
+const mlParserVerdictBadge = document.getElementById('mlParserVerdictBadge');
+const mlPredictorVerdictBadge = document.getElementById('mlPredictorVerdictBadge');
+const mlPredictedClass = document.getElementById('mlPredictedClass');
+const mlConfidenceScore = document.getElementById('mlConfidenceScore');
+const mlProbBreakdown = document.getElementById('mlProbBreakdown');
+
+console.log(`ML Badge: "${mlModelBadge ? mlModelBadge.textContent : 'MISSING'}"`);
+console.log(`Parser Verdict Badge: "${mlParserVerdictBadge ? mlParserVerdictBadge.textContent : 'MISSING'}"`);
+console.log(`Predictor Verdict Badge: "${mlPredictorVerdictBadge ? mlPredictorVerdictBadge.textContent : 'MISSING'}"`);
+console.log(`Predicted Class: "${mlPredictedClass ? mlPredictedClass.textContent : 'MISSING'}"`);
+console.log(`Confidence: "${mlConfidenceScore ? mlConfidenceScore.textContent : 'MISSING'}"`);
+
+const check7Passed = mlModelBadge !== null && mlLoadCustomBtn !== null &&
+                     mlParserVerdictBadge !== null && mlPredictorVerdictBadge !== null &&
+                     mlPredictedClass !== null && mlConfidenceScore !== null;
+console.log(`Check 7 Result: ${check7Passed ? 'PASSED' : 'FAILED'}\n`);
+
+// ---------------------------------------------------------------------------
 // SUMMARY
 // ---------------------------------------------------------------------------
 console.log('='.repeat(70));
-const allChecks = [check1Passed, check2Passed, check3Passed, check4Passed, check5Passed, check6Passed];
+const allChecks = [check1Passed, check2Passed, check3Passed, check4Passed, check5Passed, check6Passed, check7Passed];
 const passedChecks = allChecks.filter(Boolean).length;
 console.log(`SUMMARY: ${passedChecks}/${allChecks.length} verification checks passed.`);
 console.log('='.repeat(70));

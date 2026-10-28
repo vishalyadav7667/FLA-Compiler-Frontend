@@ -51,7 +51,7 @@
           </button>
           <div>
             <h1 class="header-title" id="pageHeaderTitle">Compiler Workspace</h1>
-            <p class="header-subtitle" id="pageHeaderSubtitle">Write, analyze, and validate source code.</p>
+            <!-- <p class="header-subtitle" id="pageHeaderSubtitle">Write, analyze, and validate source code.</p> -->
           </div>
         </div>
         <div class="header-actions" id="headerActions">
@@ -168,6 +168,95 @@ x = a + 5;</textarea>
             </div>
 
           </div>
+
+          <!-- ML Code Prediction Panel -->
+          <div class="panel-card ml-prediction-panel" style="margin-top: 1rem;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <div class="panel-title">ML Code Prediction (Multinomial Naive Bayes)</div>
+                <!-- <div class="panel-subtitle">Statistical character n-gram classification vs authoritative deterministic parsing</div> -->
+              </div>
+              <div class="actions-row">
+                <span class="badge badge-neutral" id="mlModelBadge">Loading Model...</span>
+                <button class="btn btn-sm btn-outline" id="mlLoadCustomBtn" title="Load custom ml_model.json">Load Model JSON</button>
+                <input type="file" id="mlModelFileInput" accept=".json" style="display: none;">
+              </div>
+            </div>
+
+            <!-- Fallback Alert if file:// protocol blocks direct fetch -->
+            <div id="mlModelAlert" class="alert alert-info" style="display: none; margin-bottom: 0.85rem; font-size: 0.8rem;"></div>
+
+            <!-- Comparison Grid -->
+            <div class="ml-comparison-grid">
+              
+              <!-- Subcard 1: Deterministic Ground Truth -->
+              <div class="ml-subcard">
+                <div class="ml-subcard-header">
+                  <span class="ml-subcard-title">Authoritative Compiler Parser</span>
+                  <span class="badge badge-success" id="mlParserVerdictBadge">PASS</span>
+                </div>
+                <div class="ml-subcard-body">
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Engine</span>
+                    <span class="ml-spec-val">Recursive-Descent LL(1)</span>
+                  </div>
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Theoretical Basis</span>
+                    <span class="ml-spec-val">Context-Free Grammar &amp; PDA</span>
+                  </div>
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Role</span>
+                    <span class="ml-spec-val">Authoritative Syntax Validator</span>
+                  </div>
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Guarantees</span>
+                    <span class="ml-spec-val">100% Deterministic (Zero False +/-)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Subcard 2: Probabilistic ML Predictor -->
+              <div class="ml-subcard">
+                <div class="ml-subcard-header">
+                  <span class="ml-subcard-title">Statistical ML Predictor</span>
+                  <span class="badge badge-success" id="mlPredictorVerdictBadge">VALID</span>
+                </div>
+                <div class="ml-subcard-body">
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Model</span>
+                    <span class="ml-spec-val">Multinomial Naive Bayes (char 1-4)</span>
+                  </div>
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Predicted Class</span>
+                    <span class="ml-spec-val" id="mlPredictedClass" style="font-weight: 600;">Valid Code</span>
+                  </div>
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Confidence</span>
+                    <span class="ml-spec-val" id="mlConfidenceScore" style="font-weight: 600;">--</span>
+                  </div>
+                  <div class="ml-spec-row">
+                    <span class="ml-spec-key">Probability Distribution</span>
+                    <span class="ml-spec-val" id="mlProbBreakdown">--</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- N-Gram Feature Explanation -->
+            <div class="ml-details-card" style="margin-top: 0.85rem;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-heading); margin-bottom: 0.4rem;">
+                Top Discriminating N-Gram Features in Current Input
+              </div>
+              <div id="mlTopFeaturesContainer" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                <span class="text-muted" style="font-size: 0.8rem;">Run analysis on code to extract influential character n-grams.</span>
+              </div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.4; margin-bottom: 0;">
+                <!-- <strong>Theoretical Distinction:</strong> The Naive Bayes model estimates syntax likelihood by evaluating statistical character n-gram frequencies learned from training corpora. While fast and probabilistic, machine learning cannot replace the formal grammar guarantees of automata theory and deterministic pushdown automata (PDA). The deterministic parser remains the sole authoritative validation engine. -->
+              </p>
+            </div>
+
+          </div>
         </section>
 
         <!-- =============================================================== -->
@@ -186,7 +275,6 @@ x = a + 5;</textarea>
               </div>
             </div>
             <div id="jffStatus" class="jflap-status">
-              Select actual .jff files (e.g. Identifier_DFA.jff, Number_DFA.jff, CFG files) from JFLAP_Models to load their transitions directly into the visualizer.
             </div>
             <div id="jffModelsView"></div>
 
@@ -334,6 +422,7 @@ x = a + 5;</textarea>
   <script src="js/lexer.js"></script>
   <script src="js/parser.js"></script>
   <script src="js/automata.js"></script>
+  <script src="js/ml-predictor.js"></script>
   <script src="js/test-suite.js"></script>
   <script src="js/app.js"></script>
   <script src="js/jff-integration.js"></script>

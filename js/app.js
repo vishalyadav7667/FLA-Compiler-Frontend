@@ -238,17 +238,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!hasLexErrors && !hasParseErrors) {
       analysisStatus.className = 'status-badge success';
       analysisStatus.textContent = 'Syntax Valid';
+      if (mlParserVerdictBadge) {
+        mlParserVerdictBadge.className = 'badge badge-success';
+        mlParserVerdictBadge.textContent = 'PASS';
+      }
       diagnosticsBanner.className = 'diagnostics-banner success';
       diagnosticsBanner.style.display = 'block';
       diagnosticsBanner.innerHTML = `
         <div>
           <div class="diag-title">Lexical and Syntactic Analysis Succeeded</div>
-          <div style="color: var(--text-secondary); font-size: 0.8rem;">Program conforms to the FLA-Lang grammar. All ${lexResult.tokens.length} tokens recognized cleanly. AST built with ${parseResult.derivations.length} derivation steps.</div>
         </div>
       `;
     } else {
       analysisStatus.className = 'status-badge error';
       analysisStatus.textContent = 'Analysis Errors';
+      if (mlParserVerdictBadge) {
+        mlParserVerdictBadge.className = 'badge badge-danger';
+        mlParserVerdictBadge.textContent = 'FAIL';
+      }
       diagnosticsBanner.className = 'diagnostics-banner error';
       diagnosticsBanner.style.display = 'block';
 
@@ -269,6 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render Derivations
     renderDerivations(parseResult.derivations);
+
+    // Run Machine Learning Code Prediction
+    updateMLPrediction(source);
   }
 
   runBtn.addEventListener('click', runAnalysis);
@@ -282,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
     diagnosticsBanner.style.display = 'none';
     analysisStatus.className = 'status-badge ready';
     analysisStatus.textContent = 'Ready';
+    resetMLPredictionPanel();
   }
 
   // =========================================================================
@@ -648,10 +659,158 @@ document.addEventListener('DOMContentLoaded', () => {
   runAllTestsBtn.addEventListener('click', renderTestSuite);
 
   // =========================================================================
+  // 6. Machine Learning Code Predictor Integration
+  // =========================================================================
+  const mlModelBadge = document.getElementById('mlModelBadge');
+  const mlLoadCustomBtn = document.getElementById('mlLoadCustomBtn');
+  const mlModelFileInput = document.getElementById('mlModelFileInput');
+  const mlModelAlert = document.getElementById('mlModelAlert');
+  const mlParserVerdictBadge = document.getElementById('mlParserVerdictBadge');
+  const mlPredictorVerdictBadge = document.getElementById('mlPredictorVerdictBadge');
+  const mlPredictedClass = document.getElementById('mlPredictedClass');
+  const mlConfidenceScore = document.getElementById('mlConfidenceScore');
+  const mlProbBreakdown = document.getElementById('mlProbBreakdown');
+  const mlTopFeaturesContainer = document.getElementById('mlTopFeaturesContainer');
+
+  const mlPredictor = (typeof FLAML !== 'undefined' && FLAML.MLPredictor) ? new FLAML.MLPredictor() : null;
+
+  function updateMLPrediction(source) {
+    if (!mlPredictor || !mlPredictor.isLoaded()) {
+      if (mlPredictedClass) mlPredictedClass.textContent = 'Model Not Loaded';
+      if (mlConfidenceScore) mlConfidenceScore.textContent = '--';
+      if (mlProbBreakdown) mlProbBreakdown.textContent = 'Load ml_model.json to enable statistical predictions';
+      if (mlPredictorVerdictBadge) {
+        mlPredictorVerdictBadge.className = 'badge badge-neutral';
+        mlPredictorVerdictBadge.textContent = 'N/A';
+      }
+      return;
+    }
+
+    if (!source || !source.trim()) {
+      resetMLPredictionPanel();
+      return;
+    }
+
+    const pred = mlPredictor.predict(source);
+    const isValid = pred.prediction === 'valid';
+
+    if (mlPredictorVerdictBadge) {
+      mlPredictorVerdictBadge.className = isValid ? 'badge badge-success' : 'badge badge-danger';
+      mlPredictorVerdictBadge.textContent = isValid ? 'VALID' : 'INVALID';
+    }
+
+    if (mlPredictedClass) {
+      mlPredictedClass.className = isValid ? 'success-text' : 'error-text';
+      mlPredictedClass.textContent = isValid ? 'Valid Code' : 'Invalid / Malformed Code';
+    }
+
+    if (mlConfidenceScore) {
+      mlConfidenceScore.textContent = `${(pred.confidence * 100).toFixed(1)}%`;
+    }
+
+    if (mlProbBreakdown) {
+      mlProbBreakdown.textContent = `P(Valid)=${pred.probabilities.valid.toFixed(3)}, P(Invalid)=${pred.probabilities.invalid.toFixed(3)}`;
+    }
+
+    if (mlTopFeaturesContainer) {
+      mlTopFeaturesContainer.innerHTML = '';
+      if (!pred.topFeatures || pred.topFeatures.length === 0) {
+        mlTopFeaturesContainer.innerHTML = '<span class="text-muted" style="font-size: 0.8rem;">No discriminating vocabulary n-grams found in input.</span>';
+      } else {
+        pred.topFeatures.forEach(f => {
+          const tag = document.createElement('span');
+          const isFavValid = f.favors === 'valid';
+          tag.className = `ml-feature-tag ${isFavValid ? 'favors-valid' : 'favors-invalid'}`;
+          const sign = f.diff > 0 ? '+' : '';
+          tag.innerHTML = `<code>${escapeHtml(JSON.stringify(f.ngram))}</code> <span style="font-size: 0.7rem; opacity: 0.85;">(${f.favors} ${sign}${f.diff.toFixed(2)})</span>`;
+          mlTopFeaturesContainer.appendChild(tag);
+        });
+      }
+    }
+  }
+
+  function resetMLPredictionPanel() {
+    if (mlPredictorVerdictBadge) {
+      mlPredictorVerdictBadge.className = 'badge badge-neutral';
+      mlPredictorVerdictBadge.textContent = '--';
+    }
+    if (mlPredictedClass) {
+      mlPredictedClass.className = '';
+      mlPredictedClass.textContent = '--';
+    }
+    if (mlConfidenceScore) mlConfidenceScore.textContent = '--';
+    if (mlProbBreakdown) mlProbBreakdown.textContent = '--';
+    if (mlTopFeaturesContainer) {
+      mlTopFeaturesContainer.innerHTML = '<span class="text-muted" style="font-size: 0.8rem;">Run analysis on code to extract influential character n-grams.</span>';
+    }
+    if (mlParserVerdictBadge) {
+      mlParserVerdictBadge.className = 'badge badge-neutral';
+      mlParserVerdictBadge.textContent = 'READY';
+    }
+  }
+
+  function initMLPredictor() {
+    if (!mlPredictor) return;
+
+    if (mlLoadCustomBtn && mlModelFileInput) {
+      mlLoadCustomBtn.addEventListener('click', () => {
+        mlModelFileInput.click();
+      });
+
+      mlModelFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const json = JSON.parse(evt.target.result);
+            mlPredictor.loadModelFromJSON(json);
+            if (mlModelBadge) {
+              mlModelBadge.className = 'badge badge-success';
+              mlModelBadge.textContent = 'Model Loaded (Custom)';
+            }
+            if (mlModelAlert) {
+              mlModelAlert.style.display = 'none';
+            }
+            updateMLPrediction(codeEditor.value);
+          } catch (err) {
+            alert('Failed to parse model JSON: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // Attempt default fetch
+    mlPredictor.loadModel('./ml_model.json')
+      .then(loaded => {
+        if (loaded && mlModelBadge) {
+          mlModelBadge.className = 'badge badge-success';
+          mlModelBadge.textContent = 'Model Ready (v1.0)';
+          if (mlModelAlert) mlModelAlert.style.display = 'none';
+          updateMLPrediction(codeEditor.value);
+        }
+      })
+      .catch(err => {
+        console.warn('Could not auto-fetch ml_model.json:', err);
+        if (mlModelBadge) {
+          mlModelBadge.className = 'badge badge-warning';
+          mlModelBadge.textContent = 'Model Not Loaded';
+        }
+        if (mlModelAlert) {
+          mlModelAlert.style.display = 'block';
+          mlModelAlert.innerHTML = '<strong>Notice:</strong> Browser security restrictions (CORS) block direct <code>fetch()</code> of local JSON files when opened via <code>file://</code> protocol. Click <strong>Load Model JSON</strong> to select <code>ml_model.json</code> directly from your project directory, or launch a local web server (<code>python -m http.server 8000</code>).';
+        }
+      });
+  }
+
+  // =========================================================================
   // Initialization
   // =========================================================================
   updateLineNumbers();
   updateCursorPosition();
+  initMLPredictor();
   runAnalysis();
   renderCurrentAutomata();
   renderTestSuite();

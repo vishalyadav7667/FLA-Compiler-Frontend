@@ -1168,3 +1168,108 @@ html, body {
     padding: 1rem;
   }
 }
+
+/* ==========================================================================
+   4. ML CODE PREDICTION PANEL
+   ========================================================================== */
+.ml-prediction-panel {
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--border-subtle);
+}
+
+.ml-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 860px) {
+  .ml-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ml-subcard {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ml-subcard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.5rem;
+}
+
+.ml-subcard-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.ml-subcard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+}
+
+.ml-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2rem 0;
+  border-bottom: 1px dashed rgba(229, 231, 235, 0.6);
+}
+
+.ml-spec-row:last-child {
+  border-bottom: none;
+}
+
+.ml-spec-key {
+  color: var(--text-secondary);
+}
+
+.ml-spec-val {
+  color: var(--text-heading);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.ml-details-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.ml-feature-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-card-subtle);
+}
+
+.ml-feature-tag.favors-valid {
+  border-color: var(--success-border);
+  background-color: var(--success-light);
+  color: var(--success);
+}
+
+.ml-feature-tag.favors-invalid {
+  border-color: var(--error-border);
+  background-color: var(--error-light);
+  color: var(--error);
+}
+
