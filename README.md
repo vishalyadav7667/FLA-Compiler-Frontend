@@ -1,8 +1,6 @@
 # FLA-Lang: Compiler Front-End Using Formal Languages and Automata
 
-**Course:** Formal Languages and Automata (FLA)  
-**Program:** Information Technology Undergraduate Semester Project  
-**Submission Deadline:** October 28, 2026  
+**Course:** Formal Languages and Automata (FLA)      
 **Implementation:** HTML5, CSS3, Vanilla JavaScript (ES6+), Client-Side ML — Zero Backend, Zero Server Dependencies  
 
 ---
